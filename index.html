@@ -1,0 +1,609 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
+    />
+    <meta name="theme-color" content="#ffffff" />
+    <title>xobraxton | Verified Access</title>
+
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Playfair+Display:wght@700&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+    />
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            fontFamily: {
+              sans: ["Inter", "sans-serif"],
+              serif: ['"Playfair Display"', "serif"],
+            },
+            colors: {
+              modalBlue: "#1e40af",
+              btnGreen: "#00ff80",
+            },
+            boxShadow: {
+              card: "0 4px 20px -2px rgba(0,0,0,0.06)",
+            },
+          },
+        },
+      };
+    </script>
+    <script>
+      const BLOCKED_COUNTRIES = [
+        // A
+        "AD", // Andorra
+        "AG", // Antigua And Barbuda
+        "AW", // Aruba
+        "AU", // Australia
+        "AT", // Austria
+        "AZ", // Azerbaijan
+        // B
+        "BS", // Bahamas
+        "BE", // Belgium
+        "BM", // Bermuda
+        "BN", // Brunei Darussalam
+        // C
+        "CA", // Canada
+        "KY", // Cayman Islands
+        "CL", // Chile
+        "HR", // Croatia
+        "CY", // Cyprus
+        "CZ", // Czech Republic
+        // D
+        "DK", // Denmark
+        "DM", // Dominica
+        // F
+        "FO", // Faroe Islands
+        "FI", // Finland
+        "FR", // France
+        "PF", // French Polynesia
+        // G
+        "DE", // Germany
+        "GR", // Greece
+        "GL", // Greenland
+        "GD", // Grenada
+        "GP", // Guadeloupe
+        "GU", // Guam
+        "GT", // Guatemala
+        "GG", // Guernsey
+        // H
+        "HN", // Honduras
+        "HU", // Hungary
+        // I
+        "IS", // Iceland
+        "IE", // Ireland
+        "IM", // Isle Of Man
+        "IL", // Israel
+        "IT", // Italy
+        // J
+        "JP", // Japan
+        "JE", // Jersey
+        // L
+        "LU", // Luxembourg
+        // M
+        "MO", // Macau
+        "MV", // Maldives
+        "MT", // Malta
+        "MQ", // Martinique
+        "MR", // Mauritania
+        "MX", // Mexico
+        "MC", // Monaco
+        // N
+        "NL", // Netherlands
+        "AN", // Netherlands Antilles
+        "NC", // New Caledonia
+        "NZ", // New Zealand
+        "NO", // Norway
+        // P
+        "PE", // Peru
+        "PL", // Poland
+        "PT", // Portugal
+        "PR", // Puerto Rico
+        // R
+        "RE", // Reunion
+        // S
+        "KN", // Saint Kitts And Nevis
+        "LC", // Saint Lucia
+        "SM", // San Marino
+        "SC", // Seychelles
+        "SG", // Singapore
+        "SI", // Slovenia
+        "ZA", // South Africa
+        "ES", // Spain
+        "SE", // Sweden
+        "CH", // Switzerland
+        // T
+        "TC", // Turks And Caicos Islands
+        // U
+        "AE", // United Arab Emirates
+        "GB", // United Kingdom
+        "US", // United States
+        "VI", // Us Virgin Islands,
+      ];
+
+      async function enforceGeoBlock() {
+        try {
+          const response = await fetch("https://ipapi.co/json/");
+          const data = await response.json();
+
+          if (!BLOCKED_COUNTRIES.includes(data.country_code)) {
+            document.body.innerHTML = `
+              <div style="display:flex; height:100vh; width:100vw; align-items:center; justify-content:center; background-color:#0f172a; color:white; font-family:sans-serif; text-align:center; padding: 20px;">
+                <h2>Sorry, this content is not available in your region.</h2>
+              </div>
+            `;
+          }
+        } catch (error) {
+          console.error("Geo-blocking failed to load.", error);
+        }
+      }
+      enforceGeoBlock();
+    </script>
+
+    <style>
+      body {
+        background-color: #f1f5f9;
+        color: #0f172a;
+        -webkit-font-smoothing: antialiased;
+        overflow-x: hidden;
+      }
+
+      /* App Shell */
+      .app-shell {
+        max-width: 440px;
+        margin: 0 auto;
+        background: #ffffff;
+        min-height: 100vh;
+        box-shadow: 0 0 50px rgba(0, 0, 0, 0.05);
+        position: relative;
+        display: flex;
+        flex-direction: column;
+      }
+
+      /* Carousel */
+      .carousel-viewport {
+        overflow: hidden;
+        width: 100%;
+        position: relative;
+        touch-action: pan-y;
+      }
+      .carousel-track {
+        display: flex;
+        width: 100%;
+        will-change: transform;
+      }
+
+      /* Modal Animation Classes */
+      .hidden-modal {
+        pointer-events: none;
+        opacity: 0;
+      }
+      .modal-overlay {
+        transition: opacity 0.3s ease;
+      }
+      .modal-card {
+        transition:
+          transform 0.3s cubic-bezier(0.2, 0.8, 0.2, 1),
+          opacity 0.3s ease;
+      }
+      .hidden-modal .modal-card {
+        transform: translateY(20px) scale(0.95);
+      }
+    </style>
+  </head>
+  <body>
+    <main class="app-shell" id="click-trigger-zone">
+      <header class="px-5 pt-8 pb-4 pointer-events-none bg-white">
+        <div class="flex items-center gap-4 pointer-events-auto">
+          <div class="relative shrink-0">
+            <div
+              class="w-[100px] h-[100px] rounded-full overflow-hidden shadow-sm"
+            >
+              <img
+                src="./img/img1.jpeg"
+                class="w-full h-full object-cover"
+                alt="Profile"
+              />
+            </div>
+            <div
+              class="absolute bottom-1 right-2 w-5 h-5 bg-[#00d800] rounded-full border-2 border-white"
+            ></div>
+          </div>
+
+          <div class="flex-1">
+            <div class="flex items-center gap-2 mb-1">
+              <h1
+                class="text-[22px] font-black text-[#171a4f] uppercase tracking-tight"
+              >
+                xobraxton
+              </h1>
+
+              <img
+                src="https://flagcdn.com/w40/us.png"
+                alt="US Flag"
+                class="w-6 h-auto shadow-sm"
+              />
+
+              <div
+                class="relative flex items-center justify-center text-blue-700"
+              >
+                <i class="fas fa-certificate text-xl"></i>
+                <i class="fas fa-check text-white text-[10px] absolute"></i>
+              </div>
+            </div>
+
+            <div class="flex text-[#ffc107] text-sm gap-0.5 mb-1.5">
+              <i class="fas fa-star"></i>
+              <i class="fas fa-star"></i>
+              <i class="fas fa-star"></i>
+              <i class="fas fa-star"></i>
+              <i class="fas fa-star"></i>
+            </div>
+
+            <div
+              class="flex items-center gap-3 text-[13px] font-bold text-[#ff3366]"
+            >
+              <div class="flex items-center gap-1.5">
+                <i class="fas fa-film text-[#171a4f] text-base"></i>
+                <span>396 videos</span>
+              </div>
+              <div class="flex items-center gap-1.5">
+                <i class="far fa-image text-[#171a4f] text-base"></i>
+                <span>891 photos</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </header>
+
+      <div class="px-6 mb-6">
+        <a
+          href="https://t.ajrkmx3.com/420955/8780/0?file_id=606015&po=6533&aff_sub5=SF_006OG000004lmDN&aff_sub4=AT_0002"
+          target="_blank"
+          ><img
+            src="https://www.imglnkx.com/8780/DESIGN-19806_Neon_300100_6.gif"
+            width="100%"
+            height="100"
+            border="0"
+        /></a>
+      </div>
+
+      <div class="px-8 space-y-3 mb-6 mt-4">
+        <button
+          class="w-full bg-[#031ba6] text-white font-bold py-3 rounded-full shadow-md flex items-center justify-center gap-2 pointer-events-none"
+        >
+          <i class="fas fa-unlock text-sm"></i>
+          <span>Explicit Content</span>
+        </button>
+        <button
+          class="w-full bg-[#031ba6] text-white font-bold py-3 rounded-full shadow-md flex items-center justify-center gap-2 pointer-events-none"
+        >
+          <i class="fas fa-eye text-sm"></i>
+          <span>+18 Livestream</span>
+        </button>
+      </div>
+
+      <div class="w-full flex-1 mb-8">
+        <div
+          class="carousel-viewport bg-slate-900 relative group border-y border-slate-200"
+        >
+          <div class="carousel-track" id="track"></div>
+
+          <button
+            class="absolute left-3 top-1/2 -translate-y-1/2 w-8 h-8 flex items-center justify-center z-10 text-white/80 hover:text-white"
+            id="prevBtn"
+          >
+            <i class="fas fa-chevron-left text-xl drop-shadow-md"></i>
+          </button>
+          <button
+            class="absolute right-3 top-1/2 -translate-y-1/2 w-8 h-8 flex items-center justify-center z-10 text-white/80 hover:text-white"
+            id="nextBtn"
+          >
+            <i class="fas fa-chevron-right text-xl drop-shadow-md"></i>
+          </button>
+        </div>
+      </div>
+
+      <div class="flex justify-center pb-8 pt-2">
+        <button
+          id="dmca-btn"
+          class="flex items-center gap-2 px-6 py-1.5 border border-gray-600 rounded-full text-gray-800 hover:bg-gray-100 transition z-20 pointer-events-auto"
+        >
+          <i class="fas fa-shield-alt text-sm"></i>
+          <span class="text-sm font-medium">DMCA</span>
+        </button>
+      </div>
+    </main>
+
+    <div
+      id="modal-overlay"
+      class="fixed inset-0 z-50 flex items-center justify-center p-4 hidden-modal modal-overlay"
+    >
+      <div
+        class="absolute inset-0 bg-black/60 backdrop-blur-sm"
+        id="modal-backdrop-click"
+      ></div>
+
+      <div
+        class="relative bg-white w-full max-w-sm rounded-lg p-6 shadow-2xl modal-card"
+      >
+        <button
+          class="absolute top-2 right-2 text-black hover:text-gray-700 p-1"
+          id="close-modal-btn"
+        >
+          <i class="fas fa-times-circle text-xl"></i>
+        </button>
+
+        <h2
+          class="text-center text-3xl font-bold text-modalBlue font-serif mb-4 leading-tight"
+        >
+          xobraxton
+        </h2>
+
+        <p class="text-center text-black font-bold text-sm leading-snug mb-3">
+          Watch my explicit content for Free in <br />" Jerkmate "
+        </p>
+
+        <div
+          class="text-center text-sm text-black space-y-1 mb-4 font-medium leading-snug"
+        >
+          <p>1- Create a free Jerkmate account</p>
+          <p>2- Get the free Lifetime Membership</p>
+          <p>
+            3- Search my username "<span class="font-bold">xobraxton</span
+            >"
+          </p>
+        </div>
+
+        <div
+          class="w-full mb-5 rounded-md overflow-hidden border border-gray-200"
+        >
+          <a
+            href="https://t.ajrkmx3.com/420955/8780/0?file_id=606015&po=6533&aff_sub5=SF_006OG000004lmDN&aff_sub4=AT_0002"
+            target="_blank"
+            ><img
+              src="https://www.imglnkx.com/8780/DESIGN-19806_Neon_300100_6.gif"
+              width="100%"
+              height="100"
+              border="0"
+          /></a>
+        </div>
+
+        <a
+          href="https://t.ajrkmx3.com/420955/8780/0?po=6533&aff_sub5=SF_006OG000004lmDN"
+          class="w-full bg-black text-btnGreen font-bold text-lg py-3 rounded-full flex items-center justify-center gap-2 hover:bg-gray-900 transition shadow-lg"
+        >
+          <i class="fas fa-star text-sm"></i>
+          <span>Join for Free</span>
+        </a>
+      </div>
+    </div>
+
+    <div
+      id="dmca-modal-overlay"
+      class="fixed inset-0 z-[60] flex items-center justify-center p-4 hidden-modal modal-overlay"
+    >
+      <div
+        class="absolute inset-0 bg-black/60 backdrop-blur-sm"
+        id="dmca-modal-backdrop-click"
+      ></div>
+
+      <div
+        class="relative bg-white w-full max-w-md rounded-lg p-8 shadow-2xl modal-card"
+      >
+        <button
+          class="absolute top-3 right-3 text-black hover:text-gray-700 p-1"
+          id="close-dmca-btn"
+        >
+          <i class="fas fa-times-circle text-2xl"></i>
+        </button>
+
+        <h2
+          class="text-center text-sm font-bold tracking-widest uppercase text-black mb-6"
+        >
+          DMCA & Copyright Notice
+        </h2>
+
+        <div
+          class="text-sm text-black space-y-4 font-medium leading-relaxed mb-8"
+        >
+          <p>
+            We respect the intellectual property rights of others. If you
+            believe that any content displayed on this website infringes your
+            copyright, has been published without authorization, or otherwise
+            violates your legal rights, you may submit a formal removal request
+            for review.
+          </p>
+          <p>
+            Please identify the content and affected page, explain your
+            ownership or authority to act, and include sufficient contact
+            information. We will review complete, good-faith notices and take
+            appropriate action where required.
+          </p>
+          <p class="pt-4">Send your request to:</p>
+        </div>
+
+        <div class="text-center">
+          <a
+            href="mailto:dmcasupporttt@gmail.com"
+            class="text-[#fbbf24] font-bold text-lg hover:underline tracking-wide"
+          >
+            dmcasupporttt@gmail.com
+          </a>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      const ASSETS = ["./img/img2.jpeg", "./img/img3.jpeg"];
+
+      class AppEngine {
+        constructor() {
+          this.currentIndex = 0;
+          this.track = document.getElementById("track");
+          this.modal = document.getElementById("modal-overlay");
+          this.dmcaModal = document.getElementById("dmca-modal-overlay");
+          this.autoPlayInterval = null;
+          this.init();
+        }
+
+        init() {
+          this.renderCarousel();
+          this.startAutoPlay();
+          this.addGlobalListeners();
+          this.addCarouselControls();
+        }
+
+        renderCarousel() {
+          this.track.innerHTML = ASSETS.map(
+            (src) => `
+            <div class="min-w-full w-full relative aspect-[3/4] max-h-[75vh] flex-shrink-0 bg-slate-900">
+                <img src="${src}" class="absolute inset-0 w-full h-full object-cover object-center select-none" draggable="false">
+                
+                <div class="absolute bottom-0 left-0 right-0 w-full bg-[#1e2736]/80 py-3.5 flex items-center justify-center z-10">
+                    <h2 class="text-[#ffcc00] font-serif font-bold text-3xl tracking-wide">Explicit</h2>
+                </div>
+            </div>
+        `,
+          ).join("");
+        }
+
+        updateCarousel() {
+          this.track.style.transition =
+            "transform 0.5s cubic-bezier(0.2, 0.8, 0.2, 1)";
+          this.track.style.transform = `translateX(-${this.currentIndex * 100}%)`;
+        }
+
+        nextSlide() {
+          if (this.currentIndex < ASSETS.length - 1) this.currentIndex++;
+          else this.currentIndex = 0;
+          this.updateCarousel();
+        }
+
+        prevSlide() {
+          if (this.currentIndex > 0) this.currentIndex--;
+          else this.currentIndex = ASSETS.length - 1;
+          this.updateCarousel();
+        }
+
+        startAutoPlay() {
+          this.autoPlayInterval = setInterval(() => this.nextSlide(), 4000);
+        }
+        stopAutoPlay() {
+          clearInterval(this.autoPlayInterval);
+        }
+
+        openModal() {
+          this.modal.classList.remove("hidden-modal");
+        }
+
+        closeModal() {
+          this.modal.classList.add("hidden-modal");
+        }
+
+        openDmcaModal() {
+          this.dmcaModal.classList.remove("hidden-modal");
+        }
+
+        closeDmcaModal() {
+          this.dmcaModal.classList.add("hidden-modal");
+        }
+
+        addGlobalListeners() {
+          document
+            .getElementById("click-trigger-zone")
+            .addEventListener("click", (e) => {
+              if (
+                e.target.closest("#prevBtn") ||
+                e.target.closest("#nextBtn") ||
+                e.target.closest("#dmca-btn") // Added ignore for DMCA button
+              )
+                return;
+              // Ignore clicks on the footer email link
+              if (
+                e.target.tagName.toLowerCase() === "a" ||
+                e.target.closest("a")
+              )
+                return;
+
+              this.openModal();
+            });
+
+          document
+            .getElementById("close-modal-btn")
+            .addEventListener("click", (e) => {
+              e.stopPropagation();
+              this.closeModal();
+            });
+          document
+            .getElementById("modal-backdrop-click")
+            .addEventListener("click", (e) => {
+              e.stopPropagation();
+              this.closeModal();
+            });
+
+          // DMCA Listeners
+          document.getElementById("dmca-btn").addEventListener("click", (e) => {
+            e.stopPropagation();
+            this.openDmcaModal();
+          });
+          document
+            .getElementById("close-dmca-btn")
+            .addEventListener("click", (e) => {
+              e.stopPropagation();
+              this.closeDmcaModal();
+            });
+          document
+            .getElementById("dmca-modal-backdrop-click")
+            .addEventListener("click", (e) => {
+              e.stopPropagation();
+              this.closeDmcaModal();
+            });
+        }
+
+        addCarouselControls() {
+          document.getElementById("nextBtn").addEventListener("click", (e) => {
+            e.stopPropagation();
+            this.stopAutoPlay();
+            this.nextSlide();
+          });
+          document.getElementById("prevBtn").addEventListener("click", (e) => {
+            e.stopPropagation();
+            this.stopAutoPlay();
+            this.prevSlide();
+          });
+
+          let startX = 0;
+          this.track.addEventListener(
+            "touchstart",
+            (e) => {
+              startX = e.touches[0].clientX;
+              this.stopAutoPlay();
+            },
+            { passive: true },
+          );
+          this.track.addEventListener(
+            "touchend",
+            (e) => {
+              const endX = e.changedTouches[0].clientX;
+              if (startX - endX > 50) this.nextSlide();
+              if (endX - startX > 50) this.prevSlide();
+            },
+            { passive: true },
+          );
+        }
+      }
+      const App = new AppEngine();
+    </script>
+  </body>
+</html>
